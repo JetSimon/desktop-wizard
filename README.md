@@ -1,6 +1,6 @@
 # desktop-wizard
 
-!(./wizard.gif)[The desktop wizard himself]
+![The desktop wizard himself](./wizard.gif)
 
 A recently divorced desktop buddy made with Electron.
 
