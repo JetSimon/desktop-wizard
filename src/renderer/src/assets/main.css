@@ -1,0 +1,69 @@
+body,
+html,
+#root {
+  height: 100%;
+  width: 100%;
+  user-select: none;
+  overflow: hidden;
+}
+
+.WizardDiv {
+  font-size: large;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+  margin-top: 32px;
+}
+
+.WizardImage {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.WizardDiv .Subtitles {
+  color: white;
+  margin-top: auto;
+  text-align: center;
+  font-weight: bolder;
+  -webkit-animation: glow 1s ease-in-out infinite alternate;
+  -moz-animation: glow 1s ease-in-out infinite alternate;
+  animation: glow 1s ease-in-out infinite alternate;
+  padding: 32px;
+  transition: opacity 2s;
+  opacity: 1;
+  pointer-events: none;
+  cursor: default;
+}
+
+@keyframes glow {
+  from {
+    text-shadow:
+      0 0 10px #fff,
+      0 0 20px #fff,
+      0 0 30px #e60073,
+      0 0 40px #e60073,
+      0 0 50px #e60073,
+      0 0 60px #e60073,
+      0 0 70px #e60073;
+  }
+
+  to {
+    text-shadow:
+      0 0 20px #fff,
+      0 0 30px #ff4da6,
+      0 0 40px #ff4da6,
+      0 0 50px #ff4da6,
+      0 0 60px #ff4da6,
+      0 0 70px #ff4da6,
+      0 0 80px #ff4da6;
+  }
+}
+
+.Fade {
+  opacity: 0 !important;
+}
