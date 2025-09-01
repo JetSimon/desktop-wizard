@@ -34,7 +34,7 @@ html,
   -moz-animation: glow 1s ease-in-out infinite alternate;
   animation: glow 1s ease-in-out infinite alternate;
   padding: 32px;
-  transition: opacity 2s;
+  transition: opacity 2s, text-shadow 2s;
   opacity: 1;
   pointer-events: none;
   cursor: default;
@@ -64,6 +64,33 @@ html,
   }
 }
 
+@keyframes fadeGlow {
+    from {
+    text-shadow:
+      0 0 10px #fff,
+      0 0 20px #fff,
+      0 0 30px #e60073,
+      0 0 40px #e60073,
+      0 0 50px #e60073,
+      0 0 60px #e60073,
+      0 0 70px #e60073;
+  }
+
+  to {
+    text-shadow:
+      0 0 0 #fff,
+      0 0 0 #ff4da6,
+      0 0 0 #ff4da6,
+      0 0 0 #ff4da6,
+      0 0 0 #ff4da6,
+      0 0 0 #ff4da6,
+      0 0 0 #ff4da6;
+  }
+}
+
 .Fade {
   opacity: 0 !important;
+  -webkit-animation: fadeGlow 1s ease-in-out 0;
+  -moz-animation: fadeGlow 1s ease-in-out 0;
+  animation: fadeGlow 1s ease-in-out 0;
 }
