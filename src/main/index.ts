@@ -4,6 +4,12 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { spawn } from 'node:child_process'
 
+import * as os from 'os'
+
+const isMac = os.platform() === 'darwin'
+const isWindows = os.platform() === 'win32'
+const isLinux = os.platform() === 'linux'
+
 function createWindow(): void {
   const display = screen.getPrimaryDisplay()
   const width = display.bounds.width
@@ -65,7 +71,13 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.addListener('speak', (_, saying) => {
-    spawn('speak', ['-v', 'en-gb', '-p', '25', saying])
+    if (isLinux) {
+      spawn('speak', ['-v', 'en-gb', '-p', '25', saying])
+    } else if (isMac) {
+      spawn('say', ['-v', 'Reed (English (UK))', saying])
+    } else if (isWindows) {
+      // TODO Support TTS with windows
+    }
   })
 
   createWindow()
