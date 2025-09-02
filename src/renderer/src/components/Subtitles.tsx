@@ -1,32 +1,34 @@
-import { useEffect, useState } from 'react'
+import { BuddyContext, SettingsContext } from '@renderer/App'
+import { useContext, useEffect, useState } from 'react'
 
 interface SubtitlesProps {
-  text: string
   msBetweenWord: number
-  onDoneTalking: () => void
-  onStartTalking: () => void
 }
 
 function Subtitles(props: SubtitlesProps): React.ReactNode {
-  const { onStartTalking, onDoneTalking, text, msBetweenWord } = props
+  const { msBetweenWord } = props
+
+  const { saying, setIsTalking } = useContext(BuddyContext)
+
+  const { showSubtitles } = useContext(SettingsContext)
 
   const [currentText, setCurrentText] = useState('')
 
   useEffect(() => {
-    if (text == '') {
+    if (saying == '') {
       return
     }
 
-    onStartTalking()
+    setIsTalking(true)
     setCurrentText('')
 
-    const words = text.split(' ').reverse()
+    const words = saying.split(' ').reverse()
     const wordsSoFar: string[] = []
 
     const handle = setInterval(() => {
       if (words.length == 0) {
         clearInterval(handle)
-        onDoneTalking()
+        setIsTalking(false)
         return
       }
 
@@ -39,11 +41,18 @@ function Subtitles(props: SubtitlesProps): React.ReactNode {
         clearInterval(handle)
       }
     }
-  }, [text, msBetweenWord, onStartTalking, onDoneTalking])
+  }, [saying, msBetweenWord, setIsTalking])
 
-  const doneSpeaking = currentText == text
+  const doneSpeaking = currentText == saying
 
-  return <p className={'Subtitles' + (doneSpeaking ? ' Fade' : '')}>{currentText}</p>
+  return (
+    <p
+      style={showSubtitles ? {} : { visibility: 'hidden' }}
+      className={'Subtitles' + (doneSpeaking ? ' Fade' : '')}
+    >
+      {currentText}
+    </p>
+  )
 }
 
 export default Subtitles

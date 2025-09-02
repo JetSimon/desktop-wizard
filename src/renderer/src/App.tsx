@@ -1,94 +1,95 @@
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, useCallback, useState } from 'react'
 import Subtitles from './components/Subtitles'
-import { chooseRandom } from './util'
 
-import idle from './assets/idle.gif'
-import talk from './assets/talk.gif'
-import look_around from './assets/look_around.gif'
+import { BuddyState } from './types'
+import Buddy from './components/Buddy'
+import Settings from './Settings'
 
-enum WizardState {
-  Idle,
-  LookingAround,
-  Speaking
+type BuddyContext = {
+  buddyState: BuddyState
+  setBuddyState: (s: BuddyState) => void
+  saying: string
+  setSaying: (s) => void
+  isTalking: boolean
+  setIsTalking: (b: boolean) => void
 }
 
+const BuddyContext = createContext<BuddyContext>({
+  buddyState: BuddyState.Idle,
+  setBuddyState: () => {},
+  saying: '',
+  setSaying: () => {},
+  isTalking: false,
+  setIsTalking: () => {}
+})
+
+type SettingsContext = {
+  setShowingSettings: (b: boolean) => void
+  showSubtitles: boolean
+  setShowSubtitles: (b: boolean) => void
+  useVoice: boolean
+  setUseVoice: (b: boolean) => void
+}
+
+const SettingsContext = createContext<SettingsContext>({
+  setShowingSettings: () => {},
+  showSubtitles: false,
+  setShowSubtitles: () => {},
+  useVoice: false,
+  setUseVoice: () => {}
+})
+
 function App(): React.JSX.Element {
-  const [text, setText] = useState('')
-  const [img, setImage] = useState(idle)
+  const [saying, setSayingInternal] = useState('')
 
-  const [wizardState, setWizardState] = useState(WizardState.Idle)
+  const [buddyState, setBuddyState] = useState(BuddyState.Idle)
+  const [isTalking, setIsTalking] = useState(false)
 
-  function saySomething(): void {
-    const saying = chooseRandom([
-      'I want a bigger wand',
-      "My kids magically don't talk to me anymore!",
-      'I wish I never got divorced'
-    ])
+  const [showingSettings, setShowingSettings] = useState(false)
 
-    if (text != saying) {
-      window.electron.ipcRenderer.send('speak', [saying])
-      setText(saying)
-    } else {
-      saySomething()
-    }
-  }
+  const [showSubtitles, setShowSubtitles] = useState(true)
+  const [useVoice, setUseVoice] = useState(true)
 
-  useEffect(() => {
-    switch (wizardState) {
-      case WizardState.Idle:
-        setImage(idle)
-        break
-      case WizardState.LookingAround:
-        setImage(look_around)
-        break
-      case WizardState.Speaking:
-        setImage(talk)
-        break
-    }
-  }, [wizardState])
+  const setSaying = useCallback(
+    (newSaying: string) => {
+      if (useVoice) {
+        window.electron.ipcRenderer.send('speak', [newSaying])
+      }
 
-  const onStartTalking = useCallback(() => {
-    setWizardState(WizardState.Speaking)
-  }, [])
-
-  const onDoneTalking = useCallback(() => {
-    setWizardState(WizardState.Idle)
-  }, [])
-
-  useEffect(() => {
-    if (wizardState != WizardState.Idle) {
-      return
-    }
-
-    const handle = setTimeout(
-      () => setWizardState(WizardState.LookingAround),
-      Math.random() * 30 * 1000
-    )
-
-    return () => clearTimeout(handle)
-  }, [wizardState])
-
-  useEffect(() => {
-    if (wizardState != WizardState.LookingAround) {
-      return
-    }
-
-    const handle = setTimeout(() => setWizardState(WizardState.Idle), 8000)
-
-    return () => clearTimeout(handle)
-  }, [wizardState])
+      setSayingInternal(newSaying)
+    },
+    [useVoice]
+  )
 
   return (
-    <div className="WizardDiv">
-      <Subtitles
-        onStartTalking={onStartTalking}
-        onDoneTalking={onDoneTalking}
-        msBetweenWord={300}
-        text={text}
-      ></Subtitles>
-      <img className="WizardImage" onClick={saySomething} src={img}></img>
-    </div>
+    <SettingsContext.Provider
+      value={{
+        setShowingSettings: setShowingSettings,
+        showSubtitles: showSubtitles,
+        setShowSubtitles: setShowSubtitles,
+        useVoice,
+        setUseVoice
+      }}
+    >
+      <BuddyContext.Provider
+        value={{
+          buddyState: buddyState,
+          setBuddyState: setBuddyState,
+          saying: saying,
+          setSaying: setSaying,
+          isTalking: isTalking,
+          setIsTalking: setIsTalking
+        }}
+      >
+        <div className="WizardDiv">
+          <Subtitles msBetweenWord={300} />
+          <Buddy />
+        </div>
+
+        {showingSettings && <Settings />}
+      </BuddyContext.Provider>{' '}
+    </SettingsContext.Provider>
   )
 }
 
-export default App
+export { App, BuddyContext, SettingsContext }
