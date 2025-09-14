@@ -6,7 +6,7 @@ import Buddy from './components/Buddy'
 import Settings from './Settings'
 import { chooseRandom, getLocalStorageBoolWithDefault, setLocalStorageBool } from './util'
 
-const MAX_MS_BETWEEN_ORB = 10000 * 60 * 1000
+const MAX_MS_BETWEEN_ORB = 10 * 60 * 1000
 
 type BuddyContext = {
   buddyState: BuddyState
