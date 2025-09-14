@@ -4,6 +4,7 @@ import Subtitles from './components/Subtitles'
 import { BuddyState } from './types'
 import Buddy from './components/Buddy'
 import Settings from './Settings'
+import { chooseRandom, getLocalStorageBoolWithDefault, setLocalStorageBool } from './util'
 
 const MAX_MS_BETWEEN_ORB = 10000 * 60 * 1000
 
@@ -35,6 +36,8 @@ type SettingsContext = {
   setShowSubtitles: (b: boolean) => void
   useVoice: boolean
   setUseVoice: (b: boolean) => void
+  enableRandomOrbs: boolean
+  setEnableRandomOrbs: (b: boolean) => void
 }
 
 const SettingsContext = createContext<SettingsContext>({
@@ -42,10 +45,19 @@ const SettingsContext = createContext<SettingsContext>({
   showSubtitles: false,
   setShowSubtitles: () => {},
   useVoice: false,
-  setUseVoice: () => {}
+  setUseVoice: () => {},
+  enableRandomOrbs: false,
+  setEnableRandomOrbs: () => {}
 })
 
 const localOrbs = localStorage.getItem('orbs') ? Number(localStorage.getItem('orbs')) : 0
+
+const orbCollectPhrases = [
+  'Sweet sweet orbs!',
+  'Thanks for the orb',
+  'Early worm gets the orb',
+  'I hope these help with my low T'
+]
 
 function App(): React.JSX.Element {
   const [saying, setSayingInternal] = useState('')
@@ -55,8 +67,18 @@ function App(): React.JSX.Element {
 
   const [showingSettings, setShowingSettings] = useState(false)
 
-  const [showSubtitles, setShowSubtitles] = useState(true)
-  const [useVoice, setUseVoice] = useState(true)
+  // Settings
+  const [showSubtitles, setShowSubtitles] = useState(
+    getLocalStorageBoolWithDefault('showSubtitles', true)
+  )
+  const [useVoice, setUseVoice] = useState(getLocalStorageBoolWithDefault('useVoice', true))
+  const [enableRandomOrbs, setEnableRandomOrbs] = useState(
+    getLocalStorageBoolWithDefault('enableRandomOrbs', true)
+  )
+
+  useEffect(() => setLocalStorageBool('showSubtitles', showSubtitles), [showSubtitles])
+  useEffect(() => setLocalStorageBool('useVoice', useVoice), [useVoice])
+  useEffect(() => setLocalStorageBool('enableRandomOrbs', enableRandomOrbs), [enableRandomOrbs])
 
   const [orbs, setOrbs] = useState(localOrbs ?? 0)
 
@@ -75,16 +97,19 @@ function App(): React.JSX.Element {
     localStorage.setItem('orbs', orbs.toString())
   }, [orbs])
 
+  const spawnOrb = useCallback(() => {
+    if (enableRandomOrbs) {
+      window.electron.ipcRenderer.send('spawnOrb')
+    }
+  }, [enableRandomOrbs])
+
   useEffect(() => {
     // @ts-ignore (define in dts)
     window.api.onOrbClaimed(() => {
       // On orb claimed
       setOrbs((x) => x + 1)
+      setSaying(chooseRandom(orbCollectPhrases))
     })
-
-    function spawnOrb(): void {
-      window.electron.ipcRenderer.send('spawnOrb')
-    }
 
     let lastOrbSpawnHandle: NodeJS.Timeout | null = null
     function orbSpawnRoutine(spawnNow: boolean): void {
@@ -101,7 +126,7 @@ function App(): React.JSX.Element {
         clearTimeout(lastOrbSpawnHandle)
       }
     }
-  }, [setOrbs])
+  }, [setOrbs, setSaying, spawnOrb])
 
   return (
     <SettingsContext.Provider
@@ -109,8 +134,10 @@ function App(): React.JSX.Element {
         setShowingSettings: setShowingSettings,
         showSubtitles: showSubtitles,
         setShowSubtitles: setShowSubtitles,
+        setEnableRandomOrbs: setEnableRandomOrbs,
         useVoice,
-        setUseVoice
+        setUseVoice,
+        enableRandomOrbs: enableRandomOrbs
       }}
     >
       <BuddyContext.Provider

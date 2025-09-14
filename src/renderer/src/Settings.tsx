@@ -24,8 +24,15 @@ function SettingsToggle(props: SettingsToggleProps): React.ReactNode {
 }
 
 function Settings(): React.ReactNode {
-  const { setShowingSettings, useVoice, setUseVoice, showSubtitles, setShowSubtitles } =
-    useContext(SettingsContext)
+  const {
+    setShowingSettings,
+    useVoice,
+    setUseVoice,
+    showSubtitles,
+    setShowSubtitles,
+    enableRandomOrbs,
+    setEnableRandomOrbs
+  } = useContext(SettingsContext)
 
   const { orbs } = useContext(BuddyContext)
 
@@ -39,14 +46,22 @@ function Settings(): React.ReactNode {
         <button onClick={hideSettings}>{'<'}</button>
         <h2>SETTINGS</h2>
       </header>
+
       <article className="Body">
+        <div style={{ display: 'flex', placeItems: 'center', justifyContent: 'center' }}>
+          <h3>Orbs: {orbs}</h3>
+        </div>
         <SettingsToggle
           isOn={showSubtitles}
           setter={setShowSubtitles}
           label="Subtitles"
         ></SettingsToggle>
         <SettingsToggle isOn={useVoice} setter={setUseVoice} label="Voice"></SettingsToggle>
-        <p>Orbs: {orbs}</p>
+        <SettingsToggle
+          isOn={enableRandomOrbs}
+          setter={setEnableRandomOrbs}
+          label="Random Orbs"
+        ></SettingsToggle>
       </article>
       <footer className="Footer">Made by Jet Simon 2025</footer>
     </div>
