@@ -1,6 +1,7 @@
 import { useContext } from 'react'
 import './Settings.css'
 import { BuddyContext, SettingsContext } from './App'
+import wallImage from './assets/wall.jpg'
 
 interface SettingsToggleProps {
   isOn: boolean
@@ -41,7 +42,7 @@ function Settings(): React.ReactNode {
   }
 
   return (
-    <div className="Settings">
+    <div style={{ backgroundImage: `url('${wallImage}')` }} className="Settings">
       <header className="Header">
         <button onClick={hideSettings}>{'<'}</button>
         <h2>SETTINGS</h2>

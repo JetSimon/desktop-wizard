@@ -4,7 +4,6 @@
     background-color: rgb(98, 98, 98);
     color:white;
     text-shadow: #f6dd7b 1px 0 10px;
-    background-image: url("./wall.jpg");
     background-repeat: repeat-y;
     background-size: contain;
     position: absolute;
