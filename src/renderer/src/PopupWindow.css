@@ -1,0 +1,73 @@
+.PopupWindow {
+    display: flex;
+    place-items: center;
+    justify-content: center;
+    height:100%;
+    width: 100%;
+}
+
+.Orb {
+    border-radius: 100%;
+    height:64px;
+    width:64px;
+    background-color: #d9dff4;
+    animation: glow 1s ease-in-out infinite alternate, grow 5s ease-out forwards, fade 10s linear forwards;
+    filter:blur(5px)
+}
+
+@keyframes fade {
+    0% {
+        opacity: 0;
+    }
+
+    5% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+
+@keyframes grow {
+    from {
+        transform: scale(0.0);
+    }
+
+    to {
+        transform: scale(1.0);
+    }
+}
+
+@keyframes glow {
+  from {
+    box-shadow:
+      0 0 2.5px #fff,
+      0 0 5px #fff,
+      0 0 7.5px #001fe6,
+      0 0 10px #002ee6,
+      0 0 12.5px #0060e6,
+      0 0 15px #0026e6,
+      0 0 18px #0099e6;
+    
+    transform: rotate(0);
+  }
+
+  to {
+    box-shadow:
+      0 0 2.5px #fff,
+      0 0 5px #4dd5ff,
+      0 0 10px #4dacff,
+      0 0 12.5px #534dff,
+      0 0 15px #4d71ff,
+      0 0 18px #4d68ff,
+      0 0 20px #4dc7ff;
+
+      transform: rotate(360);
+  }
+}

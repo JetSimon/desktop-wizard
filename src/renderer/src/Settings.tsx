@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import './Settings.css'
-import { SettingsContext } from './App'
+import { BuddyContext, SettingsContext } from './App'
 
 interface SettingsToggleProps {
   isOn: boolean
@@ -27,6 +27,8 @@ function Settings(): React.ReactNode {
   const { setShowingSettings, useVoice, setUseVoice, showSubtitles, setShowSubtitles } =
     useContext(SettingsContext)
 
+  const { orbs } = useContext(BuddyContext)
+
   function hideSettings(): void {
     setShowingSettings(false)
   }
@@ -44,6 +46,7 @@ function Settings(): React.ReactNode {
           label="Subtitles"
         ></SettingsToggle>
         <SettingsToggle isOn={useVoice} setter={setUseVoice} label="Voice"></SettingsToggle>
+        <p>Orbs: {orbs}</p>
       </article>
       <footer className="Footer">Made by Jet Simon 2025</footer>
     </div>

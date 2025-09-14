@@ -10,7 +10,58 @@ const isMac = os.platform() === 'darwin'
 const isWindows = os.platform() === 'win32'
 const isLinux = os.platform() === 'linux'
 
-function createWindow(): void {
+function spawnOrbWindow(): void {
+  const display = screen.getPrimaryDisplay()
+  const width = display.bounds.width
+  const height = display.bounds.height
+
+  const x = Math.floor(Math.random() * width)
+  const y = Math.floor(Math.random() * height)
+
+  // Create the browser window.
+  const popupWindow = new BrowserWindow({
+    width: 128,
+    x: x,
+    y: y,
+    height: 128,
+    show: false,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    resizable: false,
+    autoHideMenuBar: true,
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false
+    }
+  })
+
+  popupWindow.on('ready-to-show', () => {
+    popupWindow.showInactive()
+  })
+
+  popupWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url)
+    return { action: 'deny' }
+  })
+
+  setTimeout(() => {
+    if (popupWindow && !popupWindow.isDestroyed()) {
+      popupWindow.close()
+    }
+  }, 10000)
+
+  // HMR for renderer base on electron-vite cli.
+  // Load the remote URL for development or the local html file for production.
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    popupWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/popup.html`)
+  } else {
+    popupWindow.loadFile(join(__dirname, '../renderer/popup.html'))
+  }
+}
+
+function createWindow(): BrowserWindow {
   const display = screen.getPrimaryDisplay()
   const width = display.bounds.width
   const height = display.bounds.height
@@ -53,6 +104,8 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return mainWindow
 }
 
 // This method will be called when Electron has finished
@@ -69,7 +122,6 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
   ipcMain.addListener('speak', (_, saying) => {
     if (isLinux) {
       spawn('speak', ['-v', 'en-gb', '-p', '25', saying])
@@ -80,7 +132,16 @@ app.whenReady().then(() => {
     }
   })
 
-  createWindow()
+  const mainWindow = createWindow()
+
+  ipcMain.addListener('spawnOrb', () => {
+    spawnOrbWindow()
+  })
+
+  ipcMain.addListener('claimOrb', (e) => {
+    e.sender.close()
+    mainWindow.webContents.send('orbClaimed')
+  })
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

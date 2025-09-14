@@ -1,9 +1,11 @@
-import { createContext, useCallback, useState } from 'react'
+import { createContext, useCallback, useEffect, useState } from 'react'
 import Subtitles from './components/Subtitles'
 
 import { BuddyState } from './types'
 import Buddy from './components/Buddy'
 import Settings from './Settings'
+
+const MAX_MS_BETWEEN_ORB = 10000 * 60 * 1000
 
 type BuddyContext = {
   buddyState: BuddyState
@@ -12,6 +14,8 @@ type BuddyContext = {
   setSaying: (s) => void
   isTalking: boolean
   setIsTalking: (b: boolean) => void
+  orbs: number
+  setOrbs: (n: number) => void
 }
 
 const BuddyContext = createContext<BuddyContext>({
@@ -20,7 +24,9 @@ const BuddyContext = createContext<BuddyContext>({
   saying: '',
   setSaying: () => {},
   isTalking: false,
-  setIsTalking: () => {}
+  setIsTalking: () => {},
+  orbs: 0,
+  setOrbs: () => {}
 })
 
 type SettingsContext = {
@@ -39,6 +45,8 @@ const SettingsContext = createContext<SettingsContext>({
   setUseVoice: () => {}
 })
 
+const localOrbs = localStorage.getItem('orbs') ? Number(localStorage.getItem('orbs')) : 0
+
 function App(): React.JSX.Element {
   const [saying, setSayingInternal] = useState('')
 
@@ -50,6 +58,8 @@ function App(): React.JSX.Element {
   const [showSubtitles, setShowSubtitles] = useState(true)
   const [useVoice, setUseVoice] = useState(true)
 
+  const [orbs, setOrbs] = useState(localOrbs ?? 0)
+
   const setSaying = useCallback(
     (newSaying: string) => {
       if (useVoice) {
@@ -60,6 +70,38 @@ function App(): React.JSX.Element {
     },
     [useVoice]
   )
+
+  useEffect(() => {
+    localStorage.setItem('orbs', orbs.toString())
+  }, [orbs])
+
+  useEffect(() => {
+    // @ts-ignore (define in dts)
+    window.api.onOrbClaimed(() => {
+      // On orb claimed
+      setOrbs((x) => x + 1)
+    })
+
+    function spawnOrb(): void {
+      window.electron.ipcRenderer.send('spawnOrb')
+    }
+
+    let lastOrbSpawnHandle: NodeJS.Timeout | null = null
+    function orbSpawnRoutine(spawnNow: boolean): void {
+      if (spawnNow) {
+        spawnOrb()
+      }
+      lastOrbSpawnHandle = setTimeout(() => orbSpawnRoutine(true), MAX_MS_BETWEEN_ORB)
+    }
+
+    orbSpawnRoutine(false)
+
+    return () => {
+      if (lastOrbSpawnHandle) {
+        clearTimeout(lastOrbSpawnHandle)
+      }
+    }
+  }, [setOrbs])
 
   return (
     <SettingsContext.Provider
@@ -78,7 +120,9 @@ function App(): React.JSX.Element {
           saying: saying,
           setSaying: setSaying,
           isTalking: isTalking,
-          setIsTalking: setIsTalking
+          setIsTalking: setIsTalking,
+          orbs: orbs,
+          setOrbs: setOrbs
         }}
       >
         <div className="WizardDiv">
